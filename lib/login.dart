@@ -55,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
             });
       });
     } else {
-      Navigator.pushReplacementNamed(context, '/MemberPage');
+      Navigator.pushReplacementNamed(context, '/DashboardPage');
 
       setState(() {
         username = datauser[0]['username'];

@@ -1,3 +1,4 @@
+import 'package:acovid19/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:acovid19/login.dart';
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'OpRec siMaroon',
+      title: 'ACOVID-19',
       home: SplashScreenPage(),
     );
   }
@@ -37,7 +38,7 @@ class _SplashScreenPageState extends State<SplashScreenPage> {
     return Timer(duration, () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) {
-          return Login();
+          return DashboardPage();
         }),
       );
     });
