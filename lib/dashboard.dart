@@ -3,13 +3,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:url_launcher/url_launcher.dart';
+
 int positif;
 int sembuh;
 int meninggal;
 int upositif;
 int usembuh;
 int umeninggal;
-String tanggal;
+String tanggal = '';
 
 class DashboardPage extends StatefulWidget {
   final String username;
@@ -22,6 +24,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     _getdatacovid();
+    _getdata();
     super.initState();
   }
 
@@ -34,7 +37,73 @@ class _DashboardPageState extends State<DashboardPage> {
             color: Color(0xff0c39da),
             child: Column(
               children: [
-                new Container(
+                new Image.asset(
+                  "images/logo.png",
+                  width: double.infinity,
+                  height: 150.0,
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: Center(
+                    child: Text(
+                      "Dimas Purnomo",
+                      style: TextStyle(
+                          fontSize: 18.0,
+                          color: Colors.white,
+                          letterSpacing: 5,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+                  child: FlatButton(
+                    onPressed: null,
+                    child: Container(
+                      padding: EdgeInsets.all(10.0),
+                      child: new Text(
+                        "Lokasi Terkini",
+                        style: TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.white, width: 3.0),
+                        borderRadius: BorderRadius.circular(20.0)),
+                  ),
+                ),
+                new GridView.count(
+                  crossAxisCount: 2,
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    Covid(
+                      nama: "Positif Covid-19",
+                      data: "$upositif",
+                      data2: "Hari Ini : $positif",
+                    ),
+                    Covid(
+                      nama: "Sembuh Covid-19",
+                      data: "$usembuh",
+                      data2: "Hari Ini : $sembuh",
+                    ),
+                    Covid(
+                      nama: "Meninggal Covid-19",
+                      data: "$umeninggal",
+                      data2: "Hari Ini : $meninggal",
+                    ),
+                    Covid(
+                      nama: "Update Data Covid-19",
+                      data: "$tanggal",
+                      data2: "",
+                    ),
+                  ],
+                ),
+                Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(15.0),
                   child: FlatButton(
@@ -43,7 +112,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Padding(padding: EdgeInsets.only(top: 20)),
                         Text(
-                          "Update Data \nCovid-19 Indonesia",
+                          "Berita Covid-19",
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontSize: 20.0,
@@ -52,22 +121,20 @@ class _DashboardPageState extends State<DashboardPage> {
                               fontWeight: FontWeight.bold),
                         ),
                         Padding(padding: EdgeInsets.only(top: 20)),
-                        Text(
-                          tanggal,
-                          style: TextStyle(
-                            fontSize: 18.0,
-                            color: Colors.white,
-                          ),
+                        new ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: dataList == null ? 0 : dataList.length = 5,
+                          itemBuilder: (BuildContext context, int i) {
+                            return Berita(
+                              tittle: "${dataList[i]['title']}",
+                              press: () {
+                                String url = "${dataList[i]['url']}";
+                                _launchURL(url);
+                              },
+                            );
+                          },
                         ),
-                        Padding(padding: EdgeInsets.only(top: 20)),
-                        IsiMenu(nama: 'Positif Covid-19'),
-                        Menu(nama: "Hari Ini : $positif | Total : $upositif"),
-                        IsiMenu(nama: 'Sembuh Covid-19'),
-                        Menu(nama: "Hari Ini : $sembuh | Total : $usembuh"),
-                        IsiMenu(nama: 'Meninggal Covid-19'),
-                        Menu(
-                            nama:
-                                "Hari Ini : $meninggal | Total : $umeninggal"),
                         Padding(
                           padding: EdgeInsets.only(top: 30),
                         )
@@ -77,7 +144,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         side: BorderSide(color: Colors.white, width: 3.0),
                         borderRadius: BorderRadius.circular(20.0)),
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -101,37 +168,95 @@ class _DashboardPageState extends State<DashboardPage> {
       usembuh = data['update']['total']['jumlah_sembuh'];
       umeninggal = data['update']['total']['jumlah_meninggal'];
     });
-    // return data;
+    return data;
+  }
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  List<dynamic> dataList = List();
+  Future<String> _getdata() async {
+    final response =
+        await http.get("https://dekontaminasi.com/api/id/covid19/news");
+
+    var data = json.decode(response.body);
+
+    // print(response.body);
+    setState(() {
+      dataList = data;
+    });
+    return data;
   }
 }
 
-class IsiMenu extends StatelessWidget {
+class Covid extends StatelessWidget {
   final String nama;
-  const IsiMenu({
+  final String data;
+  final String data2;
+  const Covid({
     Key key,
     this.nama,
+    this.data,
+    this.data2,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      nama,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 16.0,
-        letterSpacing: 5,
+    return new Container(
+      margin: EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13),
         color: Colors.white,
+      ),
+      child: Center(
+        child: new Column(
+          children: <Widget>[
+            new Text(
+              nama,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 15.0,
+                  letterSpacing: 1.0,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
+            ),
+            Padding(padding: EdgeInsets.only(top: 10.0)),
+            Text(
+              data,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.0,
+                color: Colors.black,
+              ),
+            ),
+            Padding(padding: EdgeInsets.only(top: 10.0)),
+            Text(
+              data2,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15.0,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class Menu extends StatelessWidget {
-  final String nama;
+class Berita extends StatelessWidget {
+  final String tittle;
   final Function press;
-  const Menu({
+  const Berita({
     Key key,
-    this.nama,
+    this.tittle,
     this.press,
   }) : super(key: key);
 
@@ -139,13 +264,18 @@ class Menu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+      padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 8),
       child: FlatButton(
         onPressed: press,
-        child: new Text(
-          nama,
-          style: TextStyle(
-              fontSize: 14.0, color: Colors.white, fontWeight: FontWeight.bold),
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: new Text(
+            tittle,
+            style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.white,
+                fontWeight: FontWeight.bold),
+          ),
         ),
         shape: RoundedRectangleBorder(
             side: BorderSide(color: Colors.white, width: 3.0),
